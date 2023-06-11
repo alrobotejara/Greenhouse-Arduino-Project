@@ -1,0 +1,79 @@
+#include <LiquidCrystal.h> // Include LCD library
+
+// Define sensor pins
+const int temp=A0;
+const int gas=A2;
+const int hum=A3;
+const int ilu=A4;
+
+// Define actuator pins
+const int heat=4;
+const int fan=5;
+const int light=6;
+const int pump=7;
+
+// Variables for sensor readings
+int temp_conv, gas_conv, hum_conv, ilu_conv;
+
+// Set up LCD screen
+LiquidCrystal lcd(8,9,10,11,12,13);
+
+void setup()
+{
+  // Start serial communication
+  Serial.begin(9600);
+  
+  // Set up LCD
+  lcd.begin(16,2);
+  
+  // Define actuator pins as OUTPUT
+  pinMode(heat, OUTPUT);
+  pinMode(fan, OUTPUT);
+  pinMode(light, OUTPUT);
+  pinMode(pump, OUTPUT);
+}
+
+void loop()
+{
+  // Read sensor values and map them to appropriate ranges
+  temp_conv=map(analogRead(temp),20,358,-40,125);
+  gas_conv=map(analogRead(gas),306,752,0,100);
+  hum_conv=map(analogRead(hum),0,876,0,100);
+  ilu_conv=map(analogRead(ilu),6,679,0,100);
+  
+  // Display sensor readings on LCD
+  lcd.setCursor(0,0);
+  lcd.print("Hum:");
+  lcd.print(hum_conv);
+  lcd.print("% ");
+ 
+  lcd.setCursor(0,1);
+  lcd.print("Tem:");
+  lcd.print(temp_conv);
+  lcd.print("C ");
+  
+  lcd.setCursor(8,0);
+  lcd.print("Gas:");
+  lcd.print(gas_conv);
+  lcd.print("% ");
+   
+  lcd.setCursor(8,1);
+  lcd.print("Ilu:");
+  lcd.print(ilu_conv);
+  lcd.print("% ");
+  
+  // Control actuators based on sensor readings
+  // For temperature control
+  if (temp_conv<24) digitalWrite(heat,HIGH); else digitalWrite(heat,LOW);
+  
+  // For controlling fan based on temperature and CO2 levels
+  if ((temp_conv>26)||(gas_conv>40)) digitalWrite(fan,HIGH); else digitalWrite(fan,LOW);
+  
+  // For humidity control
+  if (hum_conv<10) digitalWrite(pump,HIGH); else digitalWrite(pump,LOW);
+  
+  // For light control
+  if (ilu_conv<25) digitalWrite(light,HIGH); else digitalWrite(light,LOW);
+  
+  delay(10); // Delay before next reading
+}
